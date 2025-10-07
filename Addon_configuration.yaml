@@ -1,0 +1,113 @@
+# --- Add this to your existing HA configuration.yaml and add your EZHI IP adresse ---
+rest:
+  - resource: http://your_EZHI_IP/getOutputData
+    scan_interval: 30
+    sensor:
+      - name: "EZHI Outputdaten Kurz"
+        value_template: "{{ value_json.message }}"
+        json_attributes:
+          - batS
+# Only batS because all the other values within getOutputData are already provided by kamilkosek/EZHI Integration
+  - resource: http://your_EZHI_IP/getAlarm
+    scan_interval: 30
+    sensor:
+      - name: "EZHI Alarmdaten"
+        value_template: "{{ value_json.message }}"
+        json_attributes_path: "$.data"
+        json_attributes:
+          - BatLTP
+          - BatHTP
+          - BatCE
+          - BatHV
+          - BatLV
+          - BatHI
+          - BatE
+          - DTP
+          - EE
+          - SBS
+          - ACA
+          - OfOI
+          - PvHV
+          - PvOC
+          - IRDE
+          - PVWE
+          - OfGS
+          - BCC          
+
+sensor:
+  - platform: template
+    sensors:
+      ezhi_battery_status:
+        friendly_name: "Batterie Status"
+        value_template: >
+          {% set s = state_attr('sensor.ezhi_outputdaten_kurz','batS') %}
+          {% if s == '1' %} Leerlauf
+          {% elif s == '2' %} Laden
+          {% elif s == '3' %} Entladen
+          {% elif s == '4' %} Fehler
+          {% elif s == '5' %} Shutdown
+          {% elif s == '6' %} Keine Kommunikation
+          {% else %} Unbekannt
+          {% endif %}
+        icon_template: >
+          {% set s = state_attr('sensor.ezhi_outputdaten_kurz','batS') %}
+          {% if s == '3' %} mdi:flash
+          {% elif s == '2' %} mdi:battery-charging
+          {% elif s == '4' %} mdi:alert-circle
+          {% else %} mdi:battery
+          {% endif %}
+
+binary_sensor:
+  - platform: template
+    sensors:
+      ezhi_battery_overtemp:
+        friendly_name: "Batterie Übertemperatur"
+        value_template: "{{ state_attr('sensor.ezhi_alarmdaten','BatHTP') | int(0) == 1 }}"
+      ezhi_battery_undertemp:
+        friendly_name: "Batterie Untertemperatur"
+        value_template: "{{ state_attr('sensor.ezhi_alarmdaten','BatLTP') | int(0) == 1 }}"
+      ezhi_battery_comm_error:
+        friendly_name: "Batterie Kommunikationsfehler"
+        value_template: "{{ state_attr('sensor.ezhi_alarmdaten','BatCE') | int(0) == 1 }}"
+      ezhi_battery_overvoltage:
+        friendly_name: "Batterie Überspannung"
+        value_template: "{{ state_attr('sensor.ezhi_alarmdaten','BatHV') | int(0) == 1 }}"
+      ezhi_battery_undervoltage:
+        friendly_name: "Batterie Unterspannung"
+        value_template: "{{ state_attr('sensor.ezhi_alarmdaten','BatLV') | int(0) == 1 }}"
+      ezhi_battery_overcurrent:
+        friendly_name: "Batterie Überstrom"
+        value_template: "{{ state_attr('sensor.ezhi_alarmdaten','BatHI') | int(0) == 1 }}"
+      ezhi_battery_error:
+        friendly_name: "Allgemeiner Batteriefehler"
+        value_template: "{{ state_attr('sensor.ezhi_alarmdaten','BatE') | int(0) == 1 }}"
+      ezhi_device_overtemp:
+        friendly_name: "Gerät Übertemperatur"
+        value_template: "{{ state_attr('sensor.ezhi_alarmdaten','DTP') | int(0) == 1 }}"
+      ezhi_device_error:
+        friendly_name: "Gerätefehler"
+        value_template: "{{ state_attr('sensor.ezhi_alarmdaten','EE') | int(0) == 1 }}"
+      ezhi_ac_abnormal:
+        friendly_name: "AC Fehler"
+        value_template: "{{ state_attr('sensor.ezhi_alarmdaten','ACA') | int(0) == 1 }}"
+      ezhi_offgrid_overcurrent:
+        friendly_name: "Off-Grid Überstrom"
+        value_template: "{{ state_attr('sensor.ezhi_alarmdaten','OfOI') | int(0) == 1 }}"
+      ezhi_offgrid_short:
+        friendly_name: "Off-Grid Kurzschluss"
+        value_template: "{{ state_attr('sensor.ezhi_alarmdaten','OfGS') | int(0) == 1 }}"
+      ezhi_pv_overvoltage:
+        friendly_name: "PV Überspannung"
+        value_template: "{{ state_attr('sensor.ezhi_alarmdaten','PvHV') | int(0) == 1 }}"
+      ezhi_pv_overcurrent:
+        friendly_name: "PV Überstrom"
+        value_template: "{{ state_attr('sensor.ezhi_alarmdaten','PvOC') | int(0) == 1 }}"
+      ezhi_pv_wiring_error:
+        friendly_name: "PV Verdrahtungsfehler"
+        value_template: "{{ state_attr('sensor.ezhi_alarmdaten','PVWE') | int(0) == 1 }}"
+      ezhi_ird_error:
+        friendly_name: "IRD Fehler"
+        value_template: "{{ state_attr('sensor.ezhi_alarmdaten','IRDE') | int(0) == 1 }}"
+      ezhi_battery_shutdown:
+        friendly_name: "Batterie Shutdown"
+        value_template: "{{ state_attr('sensor.ezhi_alarmdaten','SBS') | int(0) == 1 }}"
