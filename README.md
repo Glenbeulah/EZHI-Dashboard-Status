@@ -54,7 +54,11 @@ This code can be used to monitor an EZHI microinverter (Apsystems) status with b
   - IRDE    IRD Fehler
   - PVWE    PV Verdrahtungsfehler
   - OfGS    Off-Grid Kurzschluss
-  
+
+## Result in Dashboard
+  <img width="521" height="187" alt="image" src="https://github.com/user-attachments/assets/5f94cfd6-ec6a-45d7-a301-13bc7422c6b0" />
+  <img width="521" height="701" alt="image" src="https://github.com/user-attachments/assets/c9be4c0d-8dc6-4ead-a15e-02ccd8f145d5" />
+
 ## Troubleshooting
 
 - Ensure the inverter is connected to your network
